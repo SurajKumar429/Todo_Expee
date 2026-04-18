@@ -1,9 +1,19 @@
-import { useState, React } from "react";
+import React, { useState, useEffect, } from "react";
+import Expense from "./Expense";
 
 const App = () => {
+  const [tab, setTab] = useState("todo");
   const [task, setTask] = useState("");
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState(() => {
+    const savedTasks = localStorage.getItem("tasks");
+    return savedTasks ? JSON.parse(savedTasks) : [];
+  });
   const [editIndex, setEditIndex] = useState(null);
+
+  // Save tasks to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
 
   // Function to add a task
   const addTask = () => {
@@ -37,6 +47,13 @@ const App = () => {
     <div>
       <h2>Todo_Expee App</h2>
 
+      <div style={{ textAlign: "center" }}>
+        <button onClick={() => setTab("expense")}>Expense</button>
+        <button onClick={() => setTab("todo")}>Todo</button>
+      </div>
+
+      {tab === "todo" && (
+        <>
       <input
         type="text"
         placeholder="Enter Your Task"
@@ -56,6 +73,9 @@ const App = () => {
           </li>
         ))}
       </ul>
+      </>)}
+
+      {tab === "expense" && <Expense />}
     </div>
   );
 };
