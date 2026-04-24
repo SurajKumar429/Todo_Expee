@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 
 function Expense() {
   const [selectedDate, setSelectedDate] = useState("");
+  const [editId, setEditId] = useState(null);
   const [text, setText] = useState("");
   const [amount, setAmount] = useState("");
   const [type, setType] = useState("expense");
@@ -23,15 +24,34 @@ function Expense() {
       return;
     }
 
-    const newTransaction = {
-      id: Date.now(),
-      text,
-      amount: Number(amount),
-      type,
-      date: new Date(selectedDate).toISOString(),
-    };
+    if (editId !== null) {
+      // UPDATE MODE
+      const updated = transactions.map((t) =>
+        t.id === editId
+          ? {
+              ...t,
+              text,
+              amount: Number(amount),
+              type,
+              date: new Date(selectedDate).toISOString(),
+            }
+          : t,
+      );
 
-    setTransactions([...transactions, newTransaction]);
+      setTransactions(updated);
+      setEditId(null);
+    } else {
+      // CREATE MODE
+      const newTransaction = {
+        id: Date.now(),
+        text,
+        amount: Number(amount),
+        type,
+        date: new Date(selectedDate).toISOString(),
+      };
+
+      setTransactions([...transactions, newTransaction]);
+    }
 
     setText("");
     setAmount("");
@@ -109,9 +129,19 @@ function Expense() {
     setTransactions(updated);
   };
 
-  // SOrting Transactions by Date
+  // Sorting Transactions by Date
   const sortedTransactions = [...transactions].sort(
-    (a, b) => new Date(b.date) - new Date(a.date));
+    (a, b) => new Date(b.date) - new Date(a.date),
+  );
+
+  // Edit Transactions
+  const editTransaction = (transaction) => {
+    setText(transaction.text);
+    setAmount(transaction.amount);
+    setType(transaction.type);
+    setSelectedDate(transaction.date.slice(0, 10)); // important
+    setEditId(transaction.id);
+  };
 
   return (
     <div>
@@ -143,11 +173,14 @@ function Expense() {
         <option value="income">Income</option>
       </select>
 
-      <button onClick={addTransaction}>Add</button>
+      <button onClick={addTransaction}>
+        {editId !== null ? "Update" : "Add"}
+      </button>
       <ul>
         {sortedTransactions.map((t) => (
           <li key={t.id}>
             {t.text} - {t.amount} ({t.type})
+            <button onClick={() => editTransaction(t)}>Edit</button>
             <button onClick={() => deleteTransaction(t.id)}>Delete</button>
           </li>
         ))}
