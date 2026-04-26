@@ -1,6 +1,32 @@
 import { useState, useEffect } from "react";
+import { Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+);
+
+import { Pie } from "react-chartjs-2";
+import { ArcElement } from "chart.js";
+
+ChartJS.register(ArcElement);
 
 function Expense() {
+  const [category, setCategory] = useState("Food");
+  const [customCategory, setCustomCategory] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [editId, setEditId] = useState(null);
   const [text, setText] = useState("");
@@ -34,6 +60,7 @@ function Expense() {
               amount: Number(amount),
               type,
               date: new Date(selectedDate).toISOString(),
+              category: category === "Others" ? customCategory : category,
             }
           : t,
       );
@@ -47,6 +74,7 @@ function Expense() {
         text,
         amount: Number(amount),
         type,
+        category: category === "Others" ? customCategory : category,
         date: new Date(selectedDate).toISOString(),
       };
 
@@ -143,6 +171,112 @@ function Expense() {
     setEditId(transaction.id);
   };
 
+  // Chart Monthly
+  const monthlyData = new Array(12).fill(0);
+  transactions.forEach((t) => {
+    const d = new Date(t.date);
+
+    if (d.getFullYear() !== selectedYear) return;
+
+    const month = d.getMonth();
+
+    if (t.type === "expense") {
+      monthlyData[month] += t.amount;
+    }
+  });
+
+  const data = {
+    labels: [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ],
+    datasets: [
+      {
+        label: "Monthly Expenses",
+        data: monthlyData,
+        backgroundColor: "rgba(255, 99, 132, 0.5)",
+      },
+    ],
+  };
+
+  // Income VS Expense Chart
+
+  const incomeData = new Array(12).fill(0);
+  const expenseData = new Array(12).fill(0);
+  transactions.forEach((t) => {
+    const d = new Date(t.date);
+
+    if (d.getFullYear() !== selectedYear) return;
+
+    const month = d.getMonth();
+
+    if (t.type === "income") {
+      incomeData[month] += t.amount;
+    } else {
+      expenseData[month] += t.amount;
+    }
+  });
+
+  const comparisonData = {
+    labels: [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ],
+    datasets: [
+      {
+        label: "Income",
+        data: incomeData,
+        backgroundColor: "green",
+      },
+      {
+        label: "Expense",
+        data: expenseData,
+        backgroundColor: "red",
+      },
+    ],
+  };
+
+  const categoryMap = {};
+
+  transactions.forEach((t) => {
+    if (t.type === "expense") {
+      if (!categoryMap[t.category]) {
+        categoryMap[t.category] = 0;
+      }
+      categoryMap[t.category] += t.amount;
+    }
+  });
+
+  const pieData = {
+    labels: Object.keys(categoryMap),
+    datasets: [
+      {
+        data: Object.values(categoryMap),
+        backgroundColor: ["red", "blue", "green", "orange", "purple"],
+      },
+    ],
+  };
+
   return (
     <div>
       <h2>Expense Tracker</h2>
@@ -153,12 +287,21 @@ function Expense() {
         onChange={(e) => setText(e.target.value)}
       />
 
-      <input
-        type="number"
-        placeholder="Enter amount"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-      />
+      {category === "Others" && (
+        <input
+          placeholder="Enter custom category"
+          value={customCategory}
+          onChange={(e) => setCustomCategory(e.target.value)}
+        />
+      )}
+
+      <select value={category} onChange={(e) => setCategory(e.target.value)}>
+        <option value="Food">Food</option>
+        <option value="Travel">Travel</option>
+        <option value="Bills">Bills</option>
+        <option value="Shopping">Shopping</option>
+        <option value="Others">Others</option>
+      </select>
 
       <input
         type="date"
@@ -214,7 +357,7 @@ function Expense() {
           <ul>
             {dailyTransactions.map((t) => (
               <li key={t.id}>
-                {t.text} - {t.amount} ({t.type})
+                {t.text} - {t.amount} ({t.type}) [{t.category}]
               </li>
             ))}
           </ul>
@@ -223,6 +366,17 @@ function Expense() {
 
       <h4>Monthly Transactions: {monthlyTransactions.length}</h4>
       <h4>Yearly Transactions: {yearlyTransactions.length}</h4>
+      {transactions.length === 0 && (
+        <p style={{ color: "gray" }}>
+          No transactions yet. Add some data to see charts 📊
+        </p>
+      )}
+      <h3>Monthly Expense Chart</h3>
+      <Bar data={data} />
+      <h3>Income vs Expense</h3>
+      <Bar data={comparisonData} />
+      <h3>Category-wise Expenses</h3>
+      <Pie data={pieData} />
     </div>
   );
 }
