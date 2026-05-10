@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bar } from "react-chartjs-2";
+import { Bar, Pie } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -8,6 +8,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  ArcElement,
 } from "chart.js";
 
 ChartJS.register(
@@ -17,12 +18,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
+  ArcElement,
 );
-
-import { Pie } from "react-chartjs-2";
-import { ArcElement } from "chart.js";
-
-ChartJS.register(ArcElement);
 
 function Expense() {
   const [category, setCategory] = useState("Food");
@@ -41,7 +38,6 @@ function Expense() {
     localStorage.setItem("transactions", JSON.stringify(transactions));
   }, [transactions]);
 
-  // Transaction Function
   const addTransaction = () => {
     if (!text || !amount) return;
 
@@ -51,7 +47,6 @@ function Expense() {
     }
 
     if (editId !== null) {
-      // UPDATE MODE
       const updated = transactions.map((t) =>
         t.id === editId
           ? {
@@ -68,7 +63,6 @@ function Expense() {
       setTransactions(updated);
       setEditId(null);
     } else {
-      // CREATE MODE
       const newTransaction = {
         id: Date.now(),
         text,
@@ -86,22 +80,17 @@ function Expense() {
     setType("expense");
   };
 
-  //Total Income
   const income = transactions
     .filter((t) => t.type === "income")
     .reduce((acc, t) => acc + t.amount, 0);
 
-  //Total Expenses
   const expense = transactions
     .filter((t) => t.type === "expense")
     .reduce((acc, t) => acc + t.amount, 0);
 
-  //Savings
   const savings = income - expense;
 
-  // Monthly Breakdown
   const selected = selectedDate ? new Date(selectedDate) : new Date();
-
   const selectedMonth = selected.getMonth();
   const selectedYear = selected.getFullYear();
 
@@ -120,7 +109,6 @@ function Expense() {
 
   const monthlySavings = monthlyIncome - monthlyExpense;
 
-  // Yearly Breakdown
   const yearlyTransactions = transactions.filter((t) => {
     return new Date(t.date).getFullYear() === selectedYear;
   });
@@ -135,7 +123,6 @@ function Expense() {
 
   const yearlySavings = yearlyIncome - yearlyExpense;
 
-  // Daily Breakdown
   const dailyTransactions = transactions.filter((t) => {
     const d = new Date(t.date);
     return d.toISOString().slice(0, 10) === selectedDate;
@@ -151,27 +138,23 @@ function Expense() {
 
   const dailySavings = dailyIncome - dailyExpense;
 
-  // Delete Transaction
   const deleteTransaction = (id) => {
     const updated = transactions.filter((t) => t.id !== id);
     setTransactions(updated);
   };
 
-  // Sorting Transactions by Date
   const sortedTransactions = [...transactions].sort(
     (a, b) => new Date(b.date) - new Date(a.date),
   );
 
-  // Edit Transactions
   const editTransaction = (transaction) => {
     setText(transaction.text);
     setAmount(transaction.amount);
     setType(transaction.type);
-    setSelectedDate(transaction.date.slice(0, 10)); // important
+    setSelectedDate(transaction.date.slice(0, 10));
     setEditId(transaction.id);
   };
 
-  // Chart Monthly
   const monthlyData = new Array(12).fill(0);
   transactions.forEach((t) => {
     const d = new Date(t.date);
@@ -204,12 +187,10 @@ function Expense() {
       {
         label: "Monthly Expenses",
         data: monthlyData,
-        backgroundColor: "rgba(255, 99, 132, 0.5)",
+        backgroundColor: "rgba(37, 99, 235, 0.65)",
       },
     ],
   };
-
-  // Income VS Expense Chart
 
   const incomeData = new Array(12).fill(0);
   const expenseData = new Array(12).fill(0);
@@ -246,12 +227,12 @@ function Expense() {
       {
         label: "Income",
         data: incomeData,
-        backgroundColor: "green",
+        backgroundColor: "#16a34a",
       },
       {
         label: "Expense",
         data: expenseData,
-        backgroundColor: "red",
+        backgroundColor: "#ef4444",
       },
     ],
   };
@@ -272,111 +253,158 @@ function Expense() {
     datasets: [
       {
         data: Object.values(categoryMap),
-        backgroundColor: ["red", "blue", "green", "orange", "purple"],
+        backgroundColor: ["#2563eb", "#16a34a", "#f59e0b", "#ef4444", "#8b5cf6"],
       },
     ],
   };
 
   return (
-    <div>
-      <h2>Expense Tracker</h2>
+    <div className="section-card">
+      <h2 className="section-title">Expense Tracker</h2>
 
-      <input
-        placeholder="Enter description"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-      />
-
-      {category === "Others" && (
+      <div className="input-grid">
         <input
-          placeholder="Enter custom category"
-          value={customCategory}
-          onChange={(e) => setCustomCategory(e.target.value)}
+          placeholder="Enter description"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
         />
-      )}
 
-      <select value={category} onChange={(e) => setCategory(e.target.value)}>
-        <option value="Food">Food</option>
-        <option value="Travel">Travel</option>
-        <option value="Bills">Bills</option>
-        <option value="Shopping">Shopping</option>
-        <option value="Others">Others</option>
-      </select>
+        {category === "Others" && (
+          <input
+            placeholder="Enter custom category"
+            value={customCategory}
+            onChange={(e) => setCustomCategory(e.target.value)}
+          />
+        )}
 
-      <input
-        type="date"
-        value={selectedDate}
-        onChange={(e) => setSelectedDate(e.target.value)}
-      />
+        <select value={category} onChange={(e) => setCategory(e.target.value)}>
+          <option value="Food">Food</option>
+          <option value="Travel">Travel</option>
+          <option value="Bills">Bills</option>
+          <option value="Shopping">Shopping</option>
+          <option value="Others">Others</option>
+        </select>
 
-      <p>Selected Date: {selectedDate || "None"}</p>
+        <input
+          type="number"
+          placeholder="Enter amount"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
 
-      <select value={type} onChange={(e) => setType(e.target.value)}>
-        <option value="expense">Expense</option>
-        <option value="income">Income</option>
-      </select>
+        <input
+          type="date"
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+        />
 
-      <button onClick={addTransaction}>
-        {editId !== null ? "Update" : "Add"}
-      </button>
-      <ul>
+        <select value={type} onChange={(e) => setType(e.target.value)}>
+          <option value="expense">Expense</option>
+          <option value="income">Income</option>
+        </select>
+
+        <button className="primary-btn" onClick={addTransaction}>
+          {editId !== null ? "Update" : "Add"}
+        </button>
+      </div>
+
+      <p className="selected-date">Selected Date: {selectedDate || "None"}</p>
+
+      <div className="summary-row">
+        <div className="mini-card">
+          <h3>Income: {income}</h3>
+        </div>
+        <div className="mini-card">
+          <h3>Expense: {expense}</h3>
+        </div>
+        <div className="mini-card">
+          <h3>Savings: {savings}</h3>
+        </div>
+      </div>
+
+      <ul className="task-list">
         {sortedTransactions.map((t) => (
-          <li key={t.id}>
-            {t.text} - {t.amount} ({t.type})
-            <button onClick={() => editTransaction(t)}>Edit</button>
-            <button onClick={() => deleteTransaction(t.id)}>Delete</button>
+          <li key={t.id} className="task-item">
+            <span>
+              {t.text} - {t.amount} ({t.type})
+            </span>
+            <div className="task-actions">
+              <button className="edit-btn" onClick={() => editTransaction(t)}>
+                Edit
+              </button>
+              <button className="delete-btn" onClick={() => deleteTransaction(t.id)}>
+                Delete
+              </button>
+            </div>
           </li>
         ))}
       </ul>
-      <h3>Income: {income}</h3>
-      <h3>Expense: {expense}</h3>
-      <h3>Savings: {savings}</h3>
 
       {selectedDate && (
-        <>
-          <h3>Daily Summary</h3>
-          <p>Income: {dailyIncome}</p>
-          <p>Expense: {dailyExpense}</p>
-          <p>Savings: {dailySavings}</p>
+        <div className="summary-details">
+          <div className="mini-card">
+            <h3>Daily Summary</h3>
+            <p>Income: {dailyIncome}</p>
+            <p>Expense: {dailyExpense}</p>
+            <p>Savings: {dailySavings}</p>
+          </div>
 
-          <h3>Monthly Summary</h3>
-          <p>Income: {monthlyIncome}</p>
-          <p>Expense: {monthlyExpense}</p>
-          <p>Savings: {monthlySavings}</p>
+          <div className="mini-card">
+            <h3>Monthly Summary</h3>
+            <p>Income: {monthlyIncome}</p>
+            <p>Expense: {monthlyExpense}</p>
+            <p>Savings: {monthlySavings}</p>
+          </div>
 
-          <h3>Yearly Summary</h3>
-          <p>Income: {yearlyIncome}</p>
-          <p>Expense: {yearlyExpense}</p>
-          <p>Savings: {yearlySavings}</p>
-        </>
+          <div className="mini-card">
+            <h3>Yearly Summary</h3>
+            <p>Income: {yearlyIncome}</p>
+            <p>Expense: {yearlyExpense}</p>
+            <p>Savings: {yearlySavings}</p>
+          </div>
+        </div>
       )}
 
       {selectedDate && (
-        <>
+        <div className="mini-card details-card">
           <h4>Transactions on Selected Date</h4>
-          <ul>
+          <ul className="details-list">
             {dailyTransactions.map((t) => (
               <li key={t.id}>
                 {t.text} - {t.amount} ({t.type}) [{t.category}]
               </li>
             ))}
           </ul>
-        </>
+        </div>
       )}
 
-      <h4>Monthly Transactions: {monthlyTransactions.length}</h4>
-      <h4>Yearly Transactions: {yearlyTransactions.length}</h4>
+      <div className="summary-row">
+        <div className="mini-card">
+          <h4>Monthly Transactions: {monthlyTransactions.length}</h4>
+        </div>
+        <div className="mini-card">
+          <h4>Yearly Transactions: {yearlyTransactions.length}</h4>
+        </div>
+      </div>
+
       {transactions.length === 0 && (
-        <p style={{ color: "gray" }}>
-          No transactions yet. Add some data to see charts 📊
-        </p>
+        <p className="empty-text">No transactions yet. Add some data to see charts.</p>
       )}
-      <h3>Monthly Expense Chart</h3>
-      <Bar data={data} />
-      <h3>Income vs Expense</h3>
-      <Bar data={comparisonData} />
-      <h3>Category-wise Expenses</h3>
-      <Pie data={pieData} />
+
+      <div className="chart-card">
+        <h3>Monthly Expense Chart</h3>
+        <Bar data={data} />
+      </div>
+
+      <div className="chart-card">
+        <h3>Income vs Expense</h3>
+        <Bar data={comparisonData} />
+      </div>
+
+      <div className="chart-card">
+        <h3>Category-wise Expenses</h3>
+        <Pie data={pieData} />
+      </div>
     </div>
   );
 }
