@@ -42,7 +42,7 @@ const App = () => {
   return (
     <div className="app-wrapper">
       <div className="app-card">
-        <h2 className="app-title">Todo_Expee App</h2>
+        <h2 className="app-title">Todo_Expee</h2>
 
         <div className="tab-buttons">
           <button
