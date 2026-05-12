@@ -262,101 +262,87 @@ function Expense() {
     <div className="section-card">
       <h2 className="section-title">Expense Tracker</h2>
 
-      <div className="input-grid">
-        <input
-          placeholder="Enter description"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
+      <div className="expense-form-card">
+        <div className="expense-form-grid">
+          <input
+            placeholder="Enter description"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+
+          <select value={category} onChange={(e) => setCategory(e.target.value)}>
+            <option value="Food">Food</option>
+            <option value="Travel">Travel</option>
+            <option value="Bills">Bills</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Others">Others</option>
+          </select>
+
+          <input
+            type="number"
+            placeholder="Enter amount"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
+
+          <select value={type} onChange={(e) => setType(e.target.value)}>
+            <option value="expense">Expense</option>
+            <option value="income">Income</option>
+          </select>
+
+          <button className="primary-btn expense-add-btn" onClick={addTransaction}>
+            {editId !== null ? "Update" : "Add"}
+          </button>
+        </div>
 
         {category === "Others" && (
-          <input
-            placeholder="Enter custom category"
-            value={customCategory}
-            onChange={(e) => setCustomCategory(e.target.value)}
-          />
+          <div className="custom-category-row">
+            <input
+              placeholder="Enter custom category"
+              value={customCategory}
+              onChange={(e) => setCustomCategory(e.target.value)}
+            />
+          </div>
         )}
-
-        <select value={category} onChange={(e) => setCategory(e.target.value)}>
-          <option value="Food">Food</option>
-          <option value="Travel">Travel</option>
-          <option value="Bills">Bills</option>
-          <option value="Shopping">Shopping</option>
-          <option value="Others">Others</option>
-        </select>
-
-        <input
-          type="number"
-          placeholder="Enter amount"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-        />
-
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-        />
-
-        <select value={type} onChange={(e) => setType(e.target.value)}>
-          <option value="expense">Expense</option>
-          <option value="income">Income</option>
-        </select>
-
-        <button className="primary-btn" onClick={addTransaction}>
-          {editId !== null ? "Update" : "Add"}
-        </button>
       </div>
 
       <p className="selected-date">Selected Date: {selectedDate || "None"}</p>
 
-      <div className="summary-row">
-        <div className="mini-card">
+      <div className="summary-row expense-top-summary">
+        <div className="mini-card expense-summary-card">
           <h3>Income: {income}</h3>
         </div>
-        <div className="mini-card">
+        <div className="mini-card expense-summary-card">
           <h3>Expense: {expense}</h3>
         </div>
-        <div className="mini-card">
+        <div className="mini-card expense-summary-card">
           <h3>Savings: {savings}</h3>
         </div>
       </div>
 
-      <ul className="task-list">
-        {sortedTransactions.map((t) => (
-          <li key={t.id} className="task-item">
-            <span>
-              {t.text} - {t.amount} ({t.type})
-            </span>
-            <div className="task-actions">
-              <button className="edit-btn" onClick={() => editTransaction(t)}>
-                Edit
-              </button>
-              <button className="delete-btn" onClick={() => deleteTransaction(t.id)}>
-                Delete
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
-
       {selectedDate && (
-        <div className="summary-details">
-          <div className="mini-card">
+        <div className="summary-details expense-summary-details">
+          <div className="mini-card summary-detail-card">
             <h3>Daily Summary</h3>
             <p>Income: {dailyIncome}</p>
             <p>Expense: {dailyExpense}</p>
             <p>Savings: {dailySavings}</p>
           </div>
 
-          <div className="mini-card">
+          <div className="mini-card summary-detail-card">
             <h3>Monthly Summary</h3>
             <p>Income: {monthlyIncome}</p>
             <p>Expense: {monthlyExpense}</p>
             <p>Savings: {monthlySavings}</p>
           </div>
 
-          <div className="mini-card">
+          <div className="mini-card summary-detail-card">
             <h3>Yearly Summary</h3>
             <p>Income: {yearlyIncome}</p>
             <p>Expense: {yearlyExpense}</p>
@@ -365,45 +351,71 @@ function Expense() {
         </div>
       )}
 
-      {selectedDate && (
-        <div className="mini-card details-card">
-          <h4>Transactions on Selected Date</h4>
-          <ul className="details-list">
-            {dailyTransactions.map((t) => (
-              <li key={t.id}>
-                {t.text} - {t.amount} ({t.type}) [{t.category}]
-              </li>
-            ))}
-          </ul>
+      <div className="expense-bottom-layout">
+        <div className="expense-transactions-panel">
+          <div className="mini-card details-card transaction-section-card">
+            <h4>Transactions on Selected Date</h4>
+
+            <div className="transaction-count-row">
+              <div className="mini-card count-card">
+                <h4>Monthly Transactions: {monthlyTransactions.length}</h4>
+              </div>
+              <div className="mini-card count-card">
+                <h4>Yearly Transactions: {yearlyTransactions.length}</h4>
+              </div>
+            </div>
+
+            {selectedDate && dailyTransactions.length > 0 ? (
+              <ul className="task-list">
+                {dailyTransactions.map((t) => (
+                  <li key={t.id} className="task-item">
+                    <span>
+                      {t.text} - {t.amount} ({t.type}) [{t.category}]
+                    </span>
+                    <div className="task-actions">
+                      <button className="edit-btn" onClick={() => editTransaction(t)}>
+                        Edit
+                      </button>
+                      <button
+                        className="delete-btn"
+                        onClick={() => deleteTransaction(t.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="empty-text">
+                {selectedDate
+                  ? "No transactions on selected date."
+                  : "Select a date to view transactions."}
+              </p>
+            )}
+          </div>
         </div>
-      )}
 
-      <div className="summary-row">
-        <div className="mini-card">
-          <h4>Monthly Transactions: {monthlyTransactions.length}</h4>
+        <div className="expense-analytics-panel">
+          <div className="chart-card small-chart-card">
+            <h3>Category-wise Expenses</h3>
+            {Object.keys(categoryMap).length > 0 ? (
+              <Pie data={pieData} />
+            ) : (
+              <p className="empty-text">No category data yet.</p>
+            )}
+          </div>
+
+          <div className="chart-card small-chart-card">
+            <h3>Monthly Expense Chart</h3>
+            <Bar data={data} />
+          </div>
+
+          <div className="chart-card small-chart-card">
+            <h3>Income vs Expense</h3>
+            <Bar data={comparisonData} />
+          </div>
         </div>
-        <div className="mini-card">
-          <h4>Yearly Transactions: {yearlyTransactions.length}</h4>
-        </div>
-      </div>
-
-      {transactions.length === 0 && (
-        <p className="empty-text">No transactions yet. Add some data to see charts.</p>
-      )}
-
-      <div className="chart-card">
-        <h3>Monthly Expense Chart</h3>
-        <Bar data={data} />
-      </div>
-
-      <div className="chart-card">
-        <h3>Income vs Expense</h3>
-        <Bar data={comparisonData} />
-      </div>
-
-      <div className="chart-card">
-        <h3>Category-wise Expenses</h3>
-        <Pie data={pieData} />
       </div>
     </div>
   );
