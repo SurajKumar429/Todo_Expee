@@ -92,10 +92,9 @@ const App = () => {
 
   return (
     <div className="app-wrapper">
-      <div className={tab === "expense" ? "app-card expense-full-width" : "app-card"}>
-        <h2 className="app-title">Todo_Expee App</h2>
-
-        <div className="tab-buttons">
+      <div className={tab === "expense" ? "app-card app-layout expense-full-width" : "app-card app-layout"}>
+        <aside className="sidebar">
+          <h2 className="sidebar-title">Todo_Expee</h2>
           <button
             className={tab === "todo" ? "tab-btn active-tab" : "tab-btn"}
             onClick={() => setTab("todo")}
@@ -108,10 +107,13 @@ const App = () => {
           >
             Expense
           </button>
-        </div>
+        </aside>
 
-        {tab === "todo" && (
-          <div className="section-card">
+        <main className="main-panel">
+          <h2 className="app-title">Todo_Expee App</h2>
+
+          {tab === "todo" && (
+            <div className="section-card">
             <h3 className="section-title">My Tasks</h3>
 
             <div className="date-filter-row">
@@ -182,6 +184,7 @@ const App = () => {
         )}
 
         {tab === "expense" && <Expense />}
+        </main>
       </div>
     </div>
   );
